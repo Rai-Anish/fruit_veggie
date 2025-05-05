@@ -46,8 +46,9 @@ It's a scalable and modular backend system for a multi-vendor eCommerce marketpl
 
 Here is the high-level Entity-Relationship (ER) diagram for the backend:
 
-[ER diagram](https://github.com/user-attachments/assets/00cfb062-7c75-4f49-97cf-78a8def2ba75)
-*If you want clear ER diagram then click the link below*
+![ER diagram](https://github.com/user-attachments/assets/f36e265e-565d-4404-b13e-e111b7efe52f)
+
+*Note: If you want clear ER diagram then click the link below*
 
 Full DBML available in [`Interactive ER Diagram`](https://dbdiagram.io/d/68179ff41ca52373f56592ff)
 
