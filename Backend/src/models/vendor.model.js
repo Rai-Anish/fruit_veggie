@@ -1,41 +1,55 @@
 import mongoose from "mongoose";
 
-const vendorSchema = new mongoose.Schema({
+const vendorSchema = new mongoose.Schema(
+  {
     user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true,
-        index: true 
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true,
     },
     storeName: {
-        type: String,
-        required: true
+      type: String,
+      required: true,
+      unique: true,
+    },
+    storeLogo: {
+      type: String,
+      required: true,
     },
     contactNumber: {
-        type: String,
-        required: true
+      type: String,
+      required: true,
     },
     address: {
-        street: String,
-        city: String,
-        state: String,
-        postalCode: String,
-        country: String,
-        required: true
-      },
+      street: { type: String, required: true },
+      city: { type: String, required: true },
+      state: { type: String, required: true },
+      postalCode: { type: String, required: true },
+      country: { type: String, required: true },
+    },
+    idDocument: {
+      type: String,
+      required: true,
+    },
     isApproved: {
-        type: Boolean,
-        default: false,
-        index: true // for filtering approved vs pending vendors
+      type: Boolean,
+      default: false,
+      index: true,
     },
-    isOrganicApproved: {
-        type: Boolean,
-        default: false,
-        index: true //  for filtering organic approved vendors
+    accountApproval: {
+      status: {
+        type: String,
+        enum: ["pending", "approved", "rejected"],
+        default: null,
+      },
     },
-    badges: [String],
-}, { timestamps: true })
+  },
+  {
+    timestamps: true,
+  }
+);
 
-const Vendor = mongoose.model('Vendor', vendorSchema)
+const Vendor = mongoose.model("Vendor", vendorSchema);
 
-export default Vendor
+export default Vendor;
