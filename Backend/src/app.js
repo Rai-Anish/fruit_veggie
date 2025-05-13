@@ -35,15 +35,18 @@ import categoryRoute from "./routes/category.route.js";
 import userProfileRoute from "./routes/userProfile.route.js";
 import adminRoute from "./routes/admin.route.js";
 import vendorRoute from "./routes/vendor.route.js";
+import productRoute from "./routes/product.route.js";
 
 app.use("/api/v1/auth", userRoute);
 
-app.use("/api/v1/user", userProfileRoute);
+app.use("/api/v1/users", userProfileRoute);
 
 app.use("/api/v1/admin", adminRoute);
 
 app.use("/api/v1/categories", categoryRoute);
 
-app.use("/api/v1/vendor", vendorRoute);
+app.use("/api/v1/vendors", vendorRoute);
+
+app.use("/api/v1/products", productRoute);
 
 export { app };
