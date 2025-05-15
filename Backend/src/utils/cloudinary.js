@@ -10,19 +10,26 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-export const uploadOnCloudinary = (fileBuffer, localFilePath) => {
+export const uploadOnCloudinary = async (fileBuffer, folder = "") => {
   return new Promise((resolve, reject) => {
-    if (!localFilePath) return null;
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        resource_type: "auto",
+        folder, // optional: to organize in cloudinary folders
+      },
+      (error, result) => {
+        if (error) {
+          console.error("Cloudinary stream error:", error);
+          reject(error);
+        } else {
+          resolve({
+            url: result.secure_url,
+            public_id: result.public_id,
+          });
+        }
+      }
+    );
 
-    const stream = cloudinary.uploader.upload_stream({
-      localFilePath,
-      resource_type: "auto",
-    });
-
-    (error, result) => {
-      if (error) return reject(error);
-      resolve(result?.secure_url);
-    };
-    streamifier.createReadStream(fileBuffer.buffer).pipe(stream);
+    streamifier.createReadStream(fileBuffer).pipe(stream);
   });
 };

@@ -54,7 +54,7 @@ export const createProduct = AsyncHandler(async (req, res) => {
 
   // Upload images to Cloudinary
   const imageUploadPromises = files.map((file) =>
-    uploadOnCloudinary(file.path)
+    uploadOnCloudinary(file.buffer)
   );
   const cloudinaryResponses = await Promise.all(imageUploadPromises);
 
