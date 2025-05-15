@@ -30,7 +30,7 @@ export const signUp = AsyncHandler(async (req, res) => {
   let parsedAddress;
   try {
     parsedAddress = JSON.parse(address);
-  } catch (error) {
+  } catch {
     throw new ApiError(400, "Invalid address format. Must be a JSON object.");
   }
 

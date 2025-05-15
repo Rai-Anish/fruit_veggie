@@ -23,30 +23,46 @@ const productSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    organiceApproval: {
-      status: {
-        type: String,
-        enum: ["pending", "approved", "rejected"],
-        default: null,
-      },
-    },
     category: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Category",
       required: true,
-      index: true,
+    },
+    discount: {
+      type: {
+        type: String,
+        enum: ["percentage", "fixed"],
+      },
+      value: Number,
+      fundedBy: {
+        type: String,
+        enum: ["vendor", "platform", "shared"],
+      },
+      platformShare: Number,
+      vendorShare: Number,
+      validUntil: Date,
+    },
+    finalPrice: Number,
+    attributes: {
+      color: { type: String },
+      type: { type: String },
+      size: { type: String },
+    },
+    productCatalog: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "ProductCatalog",
+      required: true,
     },
     vendor: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Vendor",
       required: true,
-      index: true,
     },
     stock: {
       type: Number,
       default: 0,
     },
-    imageUrl: [String],
+    images: [String],
   },
   { timestamps: true }
 );
