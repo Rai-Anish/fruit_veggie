@@ -36,6 +36,7 @@ import userProfileRoute from "./routes/userProfile.route.js";
 import adminRoute from "./routes/admin.route.js";
 import vendorRoute from "./routes/vendor.route.js";
 import productRoute from "./routes/product.route.js";
+import productCatalogRoute from "./routes/productCatalogue.route.js";
 
 app.use("/api/v1/auth", userRoute);
 
@@ -48,5 +49,7 @@ app.use("/api/v1/categories", categoryRoute);
 app.use("/api/v1/vendors", vendorRoute);
 
 app.use("/api/v1/products", productRoute);
+
+app.use("/api/v1/product-catalog", productCatalogRoute);
 
 export { app };

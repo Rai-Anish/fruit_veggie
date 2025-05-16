@@ -9,6 +9,7 @@ import {
   approvalReminderEmail,
   accountApprovedEmail,
 } from "../email/sendEmail.js";
+import { getExpiryDate } from "../utils/otp.js";
 
 export const sendApprovalReminder = async (user) => {
   const urlToken = generateUrlToken();

@@ -11,3 +11,7 @@ const storage = multer.diskStorage({
 });
 
 export const upload = multer({ storage: storage });
+
+////////////////// Stream upload storage  ////////////////////////////////
+const streamStorage = multer.memoryStorage();
+export const streamUpload = multer({ streamStorage, fileSize: 10 });
