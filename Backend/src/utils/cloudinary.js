@@ -1,6 +1,7 @@
 import { v2 as cloudinary } from "cloudinary";
-import fs from "fs";
 import dotenv from "dotenv";
+import streamifier from "streamifier";
+import fs from "fs";
 
 dotenv.config();
 
@@ -10,7 +11,7 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const uploadOnCloudinary = async (localFilePath) => {
+export const uploadOnCloudinary = async (localFilePath) => {
   try {
     if (!localFilePath) return null;
 
@@ -33,4 +34,26 @@ const uploadOnCloudinary = async (localFilePath) => {
   }
 };
 
-export { uploadOnCloudinary };
+export const uploadStreamOnCloudinary = async (fileBuffer, folder = "") => {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        resource_type: "auto",
+        folder, // optional: to organize in cloudinary folders
+      },
+      (error, result) => {
+        if (error) {
+          console.error("Cloudinary stream error:", error);
+          reject(error);
+        } else {
+          resolve({
+            url: result.secure_url,
+            public_id: result.public_id,
+          });
+        }
+      }
+    );
+
+    streamifier.createReadStream(fileBuffer).pipe(stream);
+  });
+};

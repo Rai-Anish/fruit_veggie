@@ -124,7 +124,7 @@ export const resetPassword = AsyncHandler(async (req, res) => {
 });
 
 export const updateProfile = AsyncHandler(async (req, res) => {
-  const { fullName = null, email = null } = req.body;
+  const { fullName, email } = req.body;
 
   const updatedUser = await User.findByIdAndUpdate(
     req.user.id,
