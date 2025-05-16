@@ -34,12 +34,6 @@ const productSchema = new mongoose.Schema(
         enum: ["percentage", "fixed"],
       },
       value: Number,
-      fundedBy: {
-        type: String,
-        enum: ["vendor", "platform", "shared"],
-      },
-      platformShare: Number,
-      vendorShare: Number,
       validUntil: Date,
     },
     finalPrice: Number,
@@ -58,10 +52,15 @@ const productSchema = new mongoose.Schema(
       ref: "Vendor",
       required: true,
     },
+    review: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Review",
+    },
     stock: {
       type: Number,
       default: 0,
     },
+
     images: [String],
   },
   { timestamps: true }
