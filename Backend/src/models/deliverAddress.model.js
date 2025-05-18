@@ -18,6 +18,10 @@ const deliveryAddressSchema = new mongoose.Schema(
       state: { type: String, required: true },
       postalCode: { type: String },
     },
+    addressLine: {
+      type: String,
+      required: true,
+    },
     isDefault: {
       type: Boolean,
       default: false,
