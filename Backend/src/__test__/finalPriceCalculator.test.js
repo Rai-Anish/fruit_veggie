@@ -1,4 +1,5 @@
 import { finalPriceCalculator } from "../utils/finalPriceCalculator";
+import { describe, expect, test } from "@jest/globals";
 
 describe("finalPriceCalculator", () => {
   test("returns original price when no discount is provided", () => {
