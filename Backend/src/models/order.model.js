@@ -45,10 +45,6 @@ const orderSchema = new mongoose.Schema(
       required: true,
     },
     items: [orderItemSchema], // Embedding the orderItemSchema as an array
-    coupon: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Coupon",
-    },
     discountAmount: {
       type: Number,
       default: 0, // discount at order level
