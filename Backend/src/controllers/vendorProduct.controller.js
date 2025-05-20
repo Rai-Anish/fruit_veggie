@@ -203,10 +203,6 @@ export const updateProduct = AsyncHandler(async (req, res) => {
 
   const parsed = productSchema.safeParse(product);
   if (!parsed.success) {
-    console.log(
-      "Validation Error:",
-      JSON.stringify(parsed.error.flatten().fieldErrors)
-    );
     throw new ApiError(400, "Invalid data type", parsed.error.format());
   }
 
@@ -250,6 +246,10 @@ export const updateProduct = AsyncHandler(async (req, res) => {
   productExist.productCatalog = productCatalog ?? productExist.productCatalog;
   productExist.stock = stock ?? productExist.stock;
   productExist.images = fileUpload ?? productExist.images;
+  productExist.finalPrice = finalPriceCalculator(
+    productExist.price,
+    productExist.discount
+  );
 
   await productExist.save();
 
