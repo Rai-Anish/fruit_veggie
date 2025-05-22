@@ -70,7 +70,7 @@ export const approveVendorAccount = AsyncHandler(async (req, res) => {
 
   // checking if user verified their email or not -> must be for vendor approval
   if (!user.isEmailVerified) {
-    await approvalReminderEmail(user.fullName, user.email, url);
+    await sendApprovalReminder(user);
 
     throw new ApiError(
       400,

@@ -38,6 +38,9 @@ import vendorRoute from "./routes/vendor.route.js";
 import productRoute from "./routes/product.route.js";
 import productCatalogRoute from "./routes/productCatalogue.route.js";
 import cartRoute from "./routes/cart.route.js";
+import couponRoute from "./routes/coupon.route.js";
+import checkoutRoute from "./routes/checkout.route.js";
+import orderRoute from "./routes/order.route.js";
 
 app.use("/api/v1/auth", userRoute);
 
@@ -54,5 +57,11 @@ app.use("/api/v1/products", productRoute);
 app.use("/api/v1/product-catalog", productCatalogRoute);
 
 app.use("/api/v1/carts", cartRoute);
+
+app.use("/api/v1/coupons", couponRoute);
+
+app.use("/api/v1/checkout", checkoutRoute);
+
+app.use("/api/v1/orders", orderRoute);
 
 export { app };

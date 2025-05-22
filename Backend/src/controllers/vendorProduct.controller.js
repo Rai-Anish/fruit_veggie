@@ -140,9 +140,6 @@ export const createProduct = AsyncHandler(async (req, res) => {
     throw new ApiError(404, "Product catalog not found");
   }
 
-  //final price
-  const finalPrice = finalPriceCalculator(price, discount);
-
   const uploadedImages = await uploadImage(files);
 
   // Save product
@@ -154,7 +151,6 @@ export const createProduct = AsyncHandler(async (req, res) => {
     requestedOrganic,
     category,
     discount,
-    finalPrice,
     attributes,
     productCatalog,
     vendor: vendorExist._id,
@@ -246,10 +242,6 @@ export const updateProduct = AsyncHandler(async (req, res) => {
   productExist.productCatalog = productCatalog ?? productExist.productCatalog;
   productExist.stock = stock ?? productExist.stock;
   productExist.images = fileUpload ?? productExist.images;
-  productExist.finalPrice = finalPriceCalculator(
-    productExist.price,
-    productExist.discount
-  );
 
   await productExist.save();
 
@@ -300,11 +292,26 @@ export const getVendorProducts = AsyncHandler(async (req, res) => {
       "Sorry you dont have permission to perform this action"
     );
   }
-  const products = await Product.find({ vendor: vendorExist.id });
+  const products = await Product.find({ vendor: vendorExist.id }).select(
+    "-createdAt -updatedAt -__v"
+  );
 
   if (!products) {
     throw new ApiError(404, "Seems like you haven't listed any products");
   }
 
-  res.status(200).json(new ApiResponse(200, "Products found", products));
+  const productWithFinalPrice = products.map((product) => {
+    const productObject = product.toObject();
+
+    productObject.finalPrice = finalPriceCalculator(
+      productObject.price,
+      productObject.discount
+    );
+
+    return productObject;
+  });
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, "Products found", productWithFinalPrice));
 });
