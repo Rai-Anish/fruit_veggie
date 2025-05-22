@@ -11,5 +11,4 @@ export const cartItemSchema = z.object({
 
 export const cartSchema = z.object({
   items: z.array(cartItemSchema),
-  totalAmount: z.coerce.number(),
 });

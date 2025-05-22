@@ -4,6 +4,8 @@ import { cartItemSchema } from "../schema/cart.schema.js";
 import ApiError from "../utils/ApiError.js";
 import { AsyncHandler } from "../utils/AsyncHandler.js";
 import ApiResponse from "../utils/ApiResponse.js";
+import Vendor from "../models/vendor.model.js";
+import { cartPriceCalculator } from "../utils/cartPrice.js";
 
 export const addToCart = AsyncHandler(async (req, res) => {
   // get cart item and user to whom cart belongs -> user must be customer
@@ -24,10 +26,14 @@ export const addToCart = AsyncHandler(async (req, res) => {
 
   if (!productExist) throw new ApiError(404, "Product not found");
 
-  // checking is user is same as vendor aka if vendor is trying to buy his own product
-  if (user.id === productExist.vendor.toString())
-    throw new ApiError("Vendor cannot buy their own products.");
+  // get vendor associated with product
+  const productVendor = await Vendor.findById(productExist.vendor);
 
+  // checking is user is same as vendor aka if vendor is trying to buy his own product
+  if (productVendor && user._id.equals(productVendor.user)) {
+    throw new ApiError(400, "Vendor cannot buy their own products.");
+  }
+  console.log(`vendor_id: ${productExist.vendor} and user_id: ${user._id}`);
   if (productExist.stock < quantity)
     throw new ApiError(400, "Insufficient stock");
 
@@ -35,27 +41,22 @@ export const addToCart = AsyncHandler(async (req, res) => {
   let cart = await Cart.findOne({ user: user.id });
 
   if (!cart) {
-    cart = new Cart({ user: user.id, items: [], totalAmount: 0 });
+    cart = new Cart({ user: user._id, items: [], totalAmount: 0 });
   }
 
   // check if item alrady in cart
   const existingItem = cart.items.find((item) => item.product.equals(product));
 
   if (existingItem) {
-    //update quantity and subtotal
+    //update quantity
     existingItem.quantity += quantity;
-    existingItem.subTotal = existingItem.quantity * productExist.finalPrice; // multiply cart item quantity by product price
   } else {
     // add new item
     cart.items.push({
       product: productExist._id,
       quantity,
-      subTotal: quantity * productExist.finalPrice,
     });
   }
-
-  // calculating totalAmount
-  cart.totalAmount = cart.items.reduce((sum, item) => sum + item.subTotal, 0);
 
   await cart.save();
 
@@ -67,11 +68,25 @@ export const addToCart = AsyncHandler(async (req, res) => {
 export const getCart = AsyncHandler(async (req, res) => {
   const user = req.user;
 
-  const cart = await Cart.findOne({ user: user.id }).select(
-    "-createdAt -updatedAt -__v"
+  const cart = await Cart.findOne({ user: user._id }).populate("items.product");
+
+  if (!cart || cart.items.length === 0) {
+    throw new ApiError(404, "Your cart is empty");
+  }
+
+  const { subTotal, cartWithLineTotalAndDiscount } = cartPriceCalculator(
+    cart.items
   );
 
-  res.status(200).json(new ApiResponse(200, "Cart found", cart));
+  const deliveryfee = 100;
+
+  res.status(200).json(
+    new ApiResponse(200, "Cart found", {
+      cartItems: cartWithLineTotalAndDiscount,
+      subTotal,
+      deliveryfee,
+    })
+  );
 });
 
 export const updateCartItem = AsyncHandler(async (req, res) => {
@@ -111,10 +126,6 @@ export const updateCartItem = AsyncHandler(async (req, res) => {
   if (!productExist) {
     throw new ApiError(404, "Product details not found");
   }
-  cartItem.subTotal = quantity * productExist.finalPrice;
-
-  // Recalculate the total amount of the cart
-  cart.totalAmount = cart.items.reduce((sum, item) => sum + item.subTotal, 0);
 
   await cart.save();
 

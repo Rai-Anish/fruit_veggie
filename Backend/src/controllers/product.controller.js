@@ -3,6 +3,7 @@ import { AsyncHandler } from "../utils/AsyncHandler.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import { productQuerySchema } from "../schema/product.schema.js";
+import { finalPriceCalculator } from "../utils/finalPriceCalculator.js";
 
 ///////////////////// PUBLIC ////////////////////////////////////
 export const getProduct = AsyncHandler(async (req, res) => {
@@ -20,16 +21,19 @@ export const getProduct = AsyncHandler(async (req, res) => {
     throw new ApiError(404, "Product not found");
   }
 
-  res.status(200).json(new ApiResponse(200, "Product found", product));
+  const productObject = product.toObject();
+  productObject.finalPrice = finalPriceCalculator(
+    productObject.price,
+    productObject.discount
+  );
+
+  res.status(200).json(new ApiResponse(200, "Product found", productObject));
 });
 
 export const getAllProduct = AsyncHandler(async (req, res) => {
-  console.log(req.query);
   const parsed = productQuerySchema.safeParse(req.query);
-  console.log("parsed Data: ", parsed.data);
 
   if (!parsed.success) {
-    console.log(parsed.error.flatten());
     throw new ApiError(400, "Invalid query");
   }
 
@@ -42,8 +46,6 @@ export const getAllProduct = AsyncHandler(async (req, res) => {
     category,
     page = 1,
   } = parsed.data;
-
-  console.log("query: ", parsed.data);
 
   const limit = 20;
   const skip = (page - 1) * limit;
@@ -121,5 +123,13 @@ export const getAllProduct = AsyncHandler(async (req, res) => {
     throw new ApiError(404, "Product list is empty");
   }
 
-  res.status(200).json(new ApiResponse(200, "Products found", { products }));
+  const productWithFinalPrice = products.map((product) => {
+    product.finalPrice = finalPriceCalculator(product.price, product.discount);
+
+    return product;
+  });
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, "Products found", productWithFinalPrice));
 });

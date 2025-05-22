@@ -36,7 +36,6 @@ const productSchema = new mongoose.Schema(
       value: Number,
       validUntil: Date,
     },
-    finalPrice: Number,
     attributes: {
       color: { type: String },
       type: { type: String },

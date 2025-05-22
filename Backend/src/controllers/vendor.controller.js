@@ -5,27 +5,26 @@ import ApiResponse from "../utils/ApiResponse.js";
 import ApiError from "../utils/ApiError.js";
 import { accountReviewEmail } from "../email/sendEmail.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { vendorSchema } from "../schema/vendor.schema.js";
 
 export const signUp = AsyncHandler(async (req, res) => {
   const avatarPath = req.files?.avatar?.[0]?.path;
   const storeLogoPath = req.files?.storeLogo?.[0]?.path;
   const idDocumentPath = req.files?.idDocument?.[0]?.path;
 
+  const parsed = vendorSchema.safeParse(req.body);
+
+  if (!parsed.success) {
+    console.log("error: ", parsed.error.flatten());
+    throw new ApiError(400, "Invalid data");
+  }
+
+  if (!storeLogoPath || !idDocumentPath) {
+    throw new ApiError(400, "Store logo and id document both are required");
+  }
+
   const { fullName, email, password, storeName, contactNumber, address } =
     req.body;
-
-  if (
-    !fullName ||
-    !email ||
-    !password ||
-    !storeName ||
-    !storeLogoPath ||
-    !contactNumber ||
-    !address ||
-    !idDocumentPath
-  ) {
-    throw new ApiError(400, "Please fill out all required fields.");
-  }
 
   let parsedAddress;
   try {
