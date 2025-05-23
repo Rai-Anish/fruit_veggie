@@ -9,7 +9,6 @@ const pormoCodeSchema = mongoose.Schema(
     type: {
       type: String,
       enum: ["percentage", "fixed"],
-      default: "fixed",
     },
     value: Number,
     validFrom: Date,
