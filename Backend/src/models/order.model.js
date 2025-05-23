@@ -1,32 +1,30 @@
 import mongoose from "mongoose";
 
-// Define the OrderItem schema as a sub-document within the Order schema
-const orderItemSchema = new mongoose.Schema(
+const orderDeliveryAddressSnapshotSchema = new mongoose.Schema(
   {
-    product: {
+    _id: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Product",
-      required: true,
-      index: true, // Added index for filtering by product
-    },
-    quantity: {
-      type: Number,
-      required: true,
-      min: 1,
-    },
-    price: {
-      type: Number,
+      ref: "DeliveryAddress",
       required: true,
     },
-    total: {
-      type: Number,
+    phoneNumber: {
+      type: String,
+      required: true,
+    },
+    address: {
+      street: { type: String, required: true },
+      city: { type: String, required: true },
+      state: { type: String, required: true },
+      postalCode: { type: String },
+    },
+    addressLine: {
+      type: String,
       required: true,
     },
   },
   { _id: false }
-); // _id: false means we don't need an additional ID for each item
+);
 
-// Define the main Order schema
 const orderSchema = new mongoose.Schema(
   {
     customer: {
@@ -34,54 +32,83 @@ const orderSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    vendor: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Vendor",
+    items: [
+      {
+        productId: mongoose.Schema.Types.ObjectId,
+        productName: String,
+        vendorId: mongoose.Schema.Types.ObjectId,
+        storeName: String, // vendor store name
+        quantity: Number,
+        price: Number, // original price
+        discount: {
+          type: {
+            type: String,
+            enum: ["percentage", "fixed"],
+          },
+          value: Number,
+          validUntil: Date,
+        },
+        finalPrice: Number, // price after discount
+        lineTotal: Number, // quantity * finalPrice
+        lineTotalBeforeDiscount: Number,
+      },
+    ],
+    deliveryAddress: orderDeliveryAddressSnapshotSchema,
+
+    subTotal: {
+      type: Number, // before coupon and delivery fee applied
       required: true,
     },
-    deliveryAddress: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "DeliveryAddress",
-      required: true,
+    coupon: {
+      code: String,
+      type: {
+        type: String,
+        enum: ["percentage", "fixed"],
+      },
+      value: Number,
+      discountedAmount: Number,
     },
-    items: [orderItemSchema], // Embedding the orderItemSchema as an array
-    discountAmount: {
+    deliveryFee: {
       type: Number,
-      default: 0, // discount at order level
+      required: true,
+      default: 0,
     },
     totalAmount: {
       type: Number,
+      required: true, // subtotal - coupon + delivery fee
       default: 0,
     },
     paymentMethod: {
       type: String,
-      enum: ["cashOnDelivery", "creditCard"],
+      enum: ["cash-on-delivery", "credit-card"],
       required: true,
     },
-    isPaid: {
-      type: Boolean,
-      default: false,
-    },
-    paitAt: {
-      type: Date,
-    },
-
     paymentStatus: {
       type: String,
-      defualt: "pending",
-      enum: ["pending", "completed"],
+      enum: ["pending", "paid", "failed", "refunded"],
+      default: "pending",
+    },
+    paidAt: {
+      type: Date,
     },
     deliveryStatus: {
       type: String,
-      enum: ["placed", "processing", "shipped", "delivered"],
+      enum: [
+        "placed",
+        "processing",
+        "shipped",
+        "delivered",
+        "cancelled",
+        "returned",
+      ],
       default: "placed",
     },
   },
   { timestamps: true }
 );
 
-const Order = mongoose.model("Order", orderSchema);
+orderSchema.index({ customer: 1, deliveryStatus: 1, "vendor._id": 1 });
 
-orderSchema.index({ customer: 1, status: 1, vendor: 1 });
+const Order = mongoose.model("Order", orderSchema);
 
 export default Order;

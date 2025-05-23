@@ -9,3 +9,5 @@ export const checkoutSchema = z.object({
   promoCode: z.string().optional(),
   total: z.coerce.number(),
 });
+
+export const paymentMethodSchema = z.enum(["cash-on-delivery", "credit-card"]);

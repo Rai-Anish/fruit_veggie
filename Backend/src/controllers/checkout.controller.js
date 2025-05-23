@@ -2,7 +2,7 @@ import ApiResponse from "../utils/ApiResponse.js";
 import ApiError from "../utils/ApiError.js";
 import { AsyncHandler } from "../utils/AsyncHandler.js";
 import Cart from "../models/cart.model.js";
-import DeliveryAddress from "../models/deliverAddress.model.js";
+import DeliveryAddress from "../models/deliveryAddress.model.js";
 import { cartPriceCalculator } from "../utils/cartPrice.js";
 import { applyCoupon } from "../utils/applyCoupon.js";
 import Coupon from "../models/coupon.model.js";
@@ -27,14 +27,15 @@ export const checkout = AsyncHandler(async (req, res) => {
   const deliveryFee = 100;
 
   // calculate price
-  const { subTotal, subTotalBeforeDiscount, cartWithLineTotalAndDiscount } =
-    cartPriceCalculator(cart.items);
+  const { subTotal, subTotalBeforeDiscount, cartItems } = cartPriceCalculator(
+    cart.items
+  );
 
   const total = subTotal + deliveryFee;
 
   res.status(200).json(
     new ApiResponse(200, "Checkout successfully", {
-      cartItems: cartWithLineTotalAndDiscount,
+      cartItems: cartItems,
       deliveryAddress,
       paymentMethod,
       subTotalBeforeDiscount,
@@ -66,7 +67,7 @@ export const applyCouponCheckout = AsyncHandler(async (req, res) => {
 
   // Find and Validate Coupon Document
   const couponDocument = await Coupon.findOne({
-    code: couponCode.toUpperCase(),
+    code: couponCode,
   });
 
   if (!couponDocument) {

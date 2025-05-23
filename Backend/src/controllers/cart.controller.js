@@ -74,7 +74,7 @@ export const getCart = AsyncHandler(async (req, res) => {
     throw new ApiError(404, "Your cart is empty");
   }
 
-  const { subTotal, cartWithLineTotalAndDiscount } = cartPriceCalculator(
+  const { subTotal, subTotalBeforeDiscount, cartItems } = cartPriceCalculator(
     cart.items
   );
 
@@ -82,7 +82,8 @@ export const getCart = AsyncHandler(async (req, res) => {
 
   res.status(200).json(
     new ApiResponse(200, "Cart found", {
-      cartItems: cartWithLineTotalAndDiscount,
+      cartItems: cartItems,
+      subTotalBeforeDiscount,
       subTotal,
       deliveryfee,
     })

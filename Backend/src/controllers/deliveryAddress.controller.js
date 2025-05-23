@@ -1,4 +1,4 @@
-import DeliveryAddress from "../models/deliverAddress.model.js";
+import DeliveryAddress from "../models/deliveryAddress.model.js";
 import { AsyncHandler } from "../utils/AsyncHandler.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
