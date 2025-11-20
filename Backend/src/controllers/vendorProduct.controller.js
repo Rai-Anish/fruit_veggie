@@ -28,30 +28,76 @@ const uploadImage = async (files) => {
   return uploadedImages;
 };
 
-const normalizeProductData = (rawProduct) => {
-  const product =
-    typeof rawProduct === "string" ? JSON.parse(product) : rawProduct;
-  product.discount = JSON.parse(product.discount);
-  product.attributes = JSON.parse(product.attributes);
+const normalizeProductData = (rawBody) => {
+  const product = { ...rawBody };
+
+  let parsedDiscount = null;
+  if (product.discount) {
+    if (
+      typeof product.discount === "string" &&
+      product.discount !== "undefined"
+    ) {
+      try {
+        parsedDiscount = JSON.parse(product.discount);
+      } catch (e) {
+        console.error("Error parsing discount JSON from request:", e.message);
+      }
+    } else {
+      console.warn(
+        "Discount field was not a valid JSON string or was the literal 'undefined'. Ignoring or defaulting."
+      );
+    }
+  }
+
+  let finalDiscount = null;
+  if (parsedDiscount) {
+    finalDiscount = {
+      type: parsedDiscount.type || undefined,
+      value:
+        typeof parsedDiscount.value === "number"
+          ? parsedDiscount.value
+          : undefined,
+      validUntil: parsedDiscount.validUntil
+        ? new Date(parsedDiscount.validUntil)
+        : undefined,
+    };
+    if (Object.values(finalDiscount).every((val) => val === undefined)) {
+      finalDiscount = undefined;
+    }
+  }
+
+  let parsedAttributes = {};
+  if (product.attributes) {
+    if (
+      typeof product.attributes === "string" &&
+      product.attributes !== "undefined"
+    ) {
+      try {
+        parsedAttributes = JSON.parse(product.attributes);
+      } catch (e) {
+        console.error("Error parsing attributes JSON from request:", e.message);
+      }
+    } else {
+      console.warn(
+        "Attributes field was not a valid JSON string or was the literal 'undefined'. Defaulting to empty object."
+      );
+    }
+  }
+  const finalAttributes = {
+    color: parsedAttributes.color || "",
+    type: parsedAttributes.type || undefined,
+    size: parsedAttributes.size || "",
+  };
 
   return {
-    ...product,
     name: product.name,
     price: Number(product.price),
     costPrice: Number(product.costPrice),
     description: product.description,
     requestedOrganic: Boolean(product.requestedOrganic),
-    discount: {
-      type: product.discount.type,
-      value: Number(product.discount.value),
-      validUntil: new Date(product.discount.validUntil),
-    },
+    discount: finalDiscount,
     category: product.category,
-    attributes: {
-      color: product.attributes.color,
-      type: product.attributes.type,
-      size: product.attributes.size,
-    },
+    attributes: finalAttributes,
     productCatalog: product.productCatalog,
     stock: Number(product.stock),
   };
@@ -78,8 +124,6 @@ export const createProduct = AsyncHandler(async (req, res) => {
       parsed.error.flatten().fieldErrors
     );
   }
-
-  console.log("files", files);
 
   const parsedFiles = productFilesSchema.safeParse(files);
 
@@ -118,12 +162,17 @@ export const createProduct = AsyncHandler(async (req, res) => {
     stock = 0,
   } = parsed.data;
 
+  console.log("name: ", name);
+  console.log("vendor: ", id);
+  console.log("attributes: ", attributes);
   // check if same product exist or not
   const productExist = await Product.findOne({
-    vendor: id,
+    vendor: vendorExist._id,
     name,
     attributes,
   });
+
+  console.log("productExist: ", productExist);
 
   if (productExist) {
     throw new ApiError(409, "Product already exists");
@@ -292,9 +341,10 @@ export const getVendorProducts = AsyncHandler(async (req, res) => {
       "Sorry you dont have permission to perform this action"
     );
   }
-  const products = await Product.find({ vendor: vendorExist.id }).select(
-    "-createdAt -updatedAt -__v"
-  );
+  const products = await Product.find({ vendor: vendorExist.id })
+    .select("-createdAt -updatedAt -__v")
+    .populate("category", "name")
+    .populate("productCatalog", "name");
 
   if (!products) {
     throw new ApiError(404, "Seems like you haven't listed any products");
@@ -310,6 +360,39 @@ export const getVendorProducts = AsyncHandler(async (req, res) => {
 
     return productObject;
   });
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, "Products found", productWithFinalPrice));
+});
+
+export const getVendorProduct = AsyncHandler(async (req, res) => {
+  const user = req.user;
+  const { id } = req.params;
+
+  const vendorExist = await Vendor.findOne({ user: user.id });
+
+  if (!vendorExist) {
+    throw new ApiError(
+      400,
+      "Sorry you dont have permission to perform this action"
+    );
+  }
+  const product = await Product.findOne({ vendor: vendorExist.id, _id: id })
+    .select("-createdAt -updatedAt -__v")
+    .populate("category", "name")
+    .populate("productCatalog", "name");
+
+  if (!product) {
+    throw new ApiError(404, "Sorry, No specific product found");
+  }
+
+  const productWithFinalPrice = product.toObject();
+
+  productWithFinalPrice.finalPrice = finalPriceCalculator(
+    productWithFinalPrice.price,
+    productWithFinalPrice.discount
+  );
 
   res
     .status(200)

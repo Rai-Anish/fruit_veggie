@@ -20,7 +20,6 @@ const productCatalogSchema = mongoose.Schema(
       ),
       required: true,
     },
-    isActive: { type: Boolean, default: true },
   },
   { timestamps: true }
 );

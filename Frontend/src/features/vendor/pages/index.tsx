@@ -1,0 +1,5 @@
+export { default as VendorDashboard } from './DashboardPage'
+export { default as VendorProducts } from './ProductPage'
+export { default as VendorOrders } from './OrderPage'
+export { default as VendorAddProduct } from './AddProductPage'
+export { default as VendorEditProduct } from './EditProductPage'

@@ -64,4 +64,8 @@ app.use("/api/v1/checkout", checkoutRoute);
 
 app.use("/api/v1/orders", orderRoute);
 
+import errorHandler from "./middlewares/error.middleware.js";
+
+app.use(errorHandler);
+
 export { app };

@@ -5,15 +5,9 @@ import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 
 export const createProductCatalog = AsyncHandler(async (req, res) => {
-  const { name, description, attributes, isActive, category } = req.body;
+  const { name, description, attributes, category } = req.body;
 
-  if (
-    !name ||
-    !description ||
-    !attributes ||
-    isActive === undefined ||
-    !category
-  ) {
+  if (!name || !attributes || !category) {
     throw new ApiError(400, "All fields are required");
   }
 
@@ -40,7 +34,6 @@ export const createProductCatalog = AsyncHandler(async (req, res) => {
     name: name.toLowerCase(),
     description,
     attributes: parsedAttributes,
-    isActive,
     category,
   });
 
@@ -54,7 +47,7 @@ export const createProductCatalog = AsyncHandler(async (req, res) => {
 
 export const updateProductCatalog = AsyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { name, description, attributes, isActive, category } = req.body;
+  const { name, description, attributes, category } = req.body;
 
   const catalog = await ProductCatalog.findById(id);
   if (!catalog) {
@@ -91,7 +84,6 @@ export const updateProductCatalog = AsyncHandler(async (req, res) => {
   catalog.name = name.toLowerCase();
   catalog.description = description;
   catalog.attributes = parsedAttributes;
-  catalog.isActive = isActive;
   catalog.category = category;
 
   await catalog.save();

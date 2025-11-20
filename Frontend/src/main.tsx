@@ -1,46 +1,30 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
-import './styles/index.css'
-import '@mantine/core/styles.css'
-import { createTheme, MantineProvider } from '@mantine/core'
-import { type MantineColorsTuple } from '@mantine/core'
-import { ModalsProvider } from '@mantine/modals' // Optional: If you use Mantine ModalsManager
-import { Notifications } from '@mantine/notifications'
+import './index.css'
 import { BrowserRouter } from 'react-router-dom'
 import { Provider } from 'react-redux'
-import { store } from './store/store'
+import { persistor, store } from './store/store'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { PersistGate } from 'redux-persist/integration/react'
+import { Toaster } from 'sonner'
+import { ThemeProvider } from './components/ThemeProvider.tsx'
 
-const customColor: MantineColorsTuple = [
-  '#e6ffee',
-  '#d3f9e0',
-  '#a8f2c0',
-  '#7aea9f',
-  '#54e382',
-  '#3bdf70',
-  '#2bdd66',
-  '#1bc455',
-  '#0bae4a',
-  '#00973c',
-]
-
-const theme = createTheme({
-  colors: {
-    customColor,
-  },
-})
+const queryClient = new QueryClient()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Provider store={store}>
-      <MantineProvider theme={theme}>
-        <ModalsProvider>
-          <Notifications />
-          <BrowserRouter>
-            <App />
-          </BrowserRouter>
-        </ModalsProvider>
-      </MantineProvider>
+      <PersistGate loading={null} persistor={persistor}>
+        <BrowserRouter>
+          <QueryClientProvider client={queryClient}>
+            <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+              <App />
+            </ThemeProvider>
+            <Toaster position="top-center" expand={false} richColors />
+          </QueryClientProvider>
+        </BrowserRouter>
+      </PersistGate>
     </Provider>
   </StrictMode>
 )

@@ -8,6 +8,7 @@ import {
 import {
   createProduct,
   deleteProduct,
+  getVendorProduct,
   getVendorProducts,
   updateProduct,
 } from "../controllers/vendorProduct.controller.js";
@@ -47,6 +48,13 @@ router.delete(
   authMiddleware,
   authorizeRoles("vendor"), //DELETE
   deleteProduct
+);
+
+router.get(
+  "/products/:id", ///////////////////// GET SINGLE
+  authMiddleware,
+  authorizeRoles("vendor"),
+  getVendorProduct
 );
 
 router.get(

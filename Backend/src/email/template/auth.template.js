@@ -45,6 +45,7 @@ export const emailVerificationTemplate = (name, verificationUrl) => {
       <h2>Hello ${name || "there"},</h2>
       <p>Thanks for signing up! Please verify your email address by clicking the button below:</p>
       <a href="${verificationUrl}" class="btn">Verify Email</a>
+      <p> ${verificationUrl}</p>
       <p style="margin-top: 16px;">⏰ <strong>Note:</strong> This link will expire in 1 hour for security reasons.</p>
       <p>If you didn't create this account, you can ignore this email.</p>
       <div class="footer">

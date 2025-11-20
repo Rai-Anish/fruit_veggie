@@ -162,3 +162,32 @@ export const approveMultipleVendors = AsyncHandler(async (req, res) => {
     })
   );
 });
+
+export const listAllVendors = AsyncHandler(async (req, res) => {
+  const { type } = req.query;
+  let filter = {};
+  if (type === "pending" || type === "approved" || type === "rejected") {
+    filter.accountApproval = {};
+  }
+
+  if (type === "pending") {
+    filter.accountApproval.status = "pending";
+  } else if (type === "approved") {
+    filter.accountApproval.status = "approved";
+  } else if (type === "rejected") {
+    filter.accountApproval.status = "rejected";
+  }
+
+  const vendors = await Vendor.find(filter)
+    .populate({
+      path: "user",
+      select: "-password -__v -refreshToken",
+    })
+    .select("-__v");
+
+  if (!vendors || vendors.length <= 0) {
+    throw new ApiError(404, "Vendor list is empty");
+  }
+
+  res.status(200).json(new ApiResponse(200, "Vendors found", vendors));
+});

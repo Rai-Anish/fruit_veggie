@@ -3,6 +3,7 @@ import {
   approveMultipleVendors,
   approveVendorAccount,
   createAdmin,
+  listAllVendors,
 } from "../controllers/admin.controller.js";
 import {
   authMiddleware,
@@ -36,4 +37,6 @@ router.post(
   authorizeRoles("admin"),
   approveVendorAccount
 );
+
+router.get("/vendors", authMiddleware, authorizeRoles("admin"), listAllVendors);
 export default router;

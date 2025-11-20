@@ -1,0 +1,24 @@
+{
+    id: 'uniqueProductIdXYZ',
+    name: 'Apple (Large)', // More generic name for the product listing
+    description: 'Crisp, sweet, and juicy apples, perfect for snacking or baking.',
+    categoryId: 'ID_OF_APPLES_SUB_CATEGORY', // Links to the "Apples" subcategory
+    vendorId: 'VENDOR_A_ID',
+    price: 150.00,
+    unit: 'kg',
+    imageUrl: 'url_to_fuji_apple_image.jpg',
+    attributes: {
+        // Core Attributes
+        farmingMethod: 'Organic', // OR 'Conventional'
+        variety: 'Fuji',          // <--- Added 'variety' as a distinct attribute
+        color: 'Red & Yellow',
+        origin: 'Local (Nepal)',
+
+        // Other relevant details
+        weight: '1kg', // This could also be a separate attribute for unit-based pricing/filtering
+        size: 'Large', // If applicable, instead of being in the name
+        certifiedOrganic: true // Boolean flag if a specific certification is tracked
+    },
+    stock: 100,
+    isAvailable: true
+}

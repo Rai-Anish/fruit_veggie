@@ -4,6 +4,8 @@ export const AppRoutes = {
   // --- Public / Auth Routes ---
   LOGIN: '/login',
   SIGNUP: '/signup',
+  VERIFY_EMAIL: '/verify-email',
+  VERIFY_EMAIL_NOTICE: '/verify-email-notice',
   FORGOT_PASSWORD: '/forgot-password',
   UNAUTHORIZED: '/unauthorized', // Page for access denied
 
@@ -17,22 +19,31 @@ export const AppRoutes = {
   CUSTOMER_PROFILE: '/my-profile',
 
   // --- Vendor Routes ---
-  VENDOR_DASHBOARD: '/vendor',
-  VENDOR_PRODUCTS: '/vendor/products',
-  VENDOR_ADD_PRODUCT: '/vendor/products/add',
-  VENDOR_EDIT_PRODUCT: '/vendor/products/edit/:id',
-  VENDOR_ORDERS: '/vendor/orders',
-  VENDOR_SALES_REPORT: '/vendor/sales',
-  VENDOR_PROFILE_SETTINGS: '/vendor/profile-settings',
+  VENDOR: '/vendor',
+  VENDOR_DASHBOARD: 'dashboard',
+  VENDOR_PRODUCTS: 'products',
+  VENDOR_EDIT_PRODUCT: 'products/:id',
+  VENDOR_ADD_PRODUCTS: 'add-product',
+  VENDOR_ORDERS: 'orders',
+  VENDOR_SALES_REPORT: 'sales',
+  VENDOR_PROFILE_SETTINGS: 'profile',
 
   // --- Admin Routes ---
-  ADMIN_DASHBOARD: '/admin',
-  ADMIN_USER_MANAGEMENT: '/admin/users',
-  ADMIN_USER_DETAIL: '/admin/users/:id',
-  ADMIN_VENDOR_VERIFICATION: '/admin/verify-vendors',
-  ADMIN_CATEGORY_MANAGEMENT: '/admin/categories',
-  ADMIN_ORDER_MANAGEMENT: '/admin/orders',
-  ADMIN_SETTINGS: '/admin/settings',
+  ADMIN: '/admin',
+  ADMIN_DASHBOARD: 'dashboard',
+  ADMIN_VENDORS_MANAGEMENT: 'vendors',
+  ADMIN_VENDORS_DETAIL: 'vendors-detail',
+  ADMIN_MAIN_CATEGORIES_MANAGEMENT: 'main-categories',
+  ADMIN_SUB_CATEGORIES_MANAGEMENT: 'sub-categories',
+  ADMIN_NEW_ORDERS_MANAGEMENT: 'new-orders',
+  ADMIN_ORDERS_HISTORY_MANAGEMENT: 'orders-history',
+  ADMIN_TRACK_ORDERS_MANAGEMENT: 'orders-track',
+  ADMIN_COUPON_LIST: 'coupons',
+  ADMIN_COUPON_CREATE: 'create-coupon',
+  ADMIN_REVIEWS_MANAGEMENT: 'reviews',
+  ADMIN_PRODUCT: 'product',
+  ADMIN_PRODUCT_CATALOG: 'product-catalog',
+  ADMIN_CUSTOMER: 'customer',
 }
 
 // define a default redirect based on role after login
@@ -41,9 +52,9 @@ export const getDefaultDashboardRoute = (
 ): string => {
   switch (role) {
     case 'admin':
-      return AppRoutes.ADMIN_DASHBOARD
+      return `${AppRoutes.ADMIN}/${AppRoutes.ADMIN_DASHBOARD}`
     case 'vendor':
-      return AppRoutes.VENDOR_DASHBOARD
+      return `${AppRoutes.VENDOR}/${AppRoutes.VENDOR_DASHBOARD}`
     case 'customer':
       return AppRoutes.CUSTOMER_HOME
     default:

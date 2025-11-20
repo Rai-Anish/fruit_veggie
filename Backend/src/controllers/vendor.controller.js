@@ -23,6 +23,10 @@ export const signUp = AsyncHandler(async (req, res) => {
     throw new ApiError(400, "Store logo and id document both are required");
   }
 
+  if (!avatarPath) {
+    throw new ApiError(400, "Avatar picture is required.");
+  }
+
   const { fullName, email, password, storeName, contactNumber, address } =
     req.body;
 

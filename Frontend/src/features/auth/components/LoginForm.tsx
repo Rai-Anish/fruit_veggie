@@ -1,66 +1,66 @@
-import React, { useEffect } from 'react'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
+
+import { Button } from '@/components/ui/button'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
 import { type LoginPayload, loginSchema } from '../types/authSchema'
-import { useForm } from '@mantine/form'
-import { zodResolver } from 'mantine-form-zod-resolver'
-import { TextInput, Button, useMantineTheme, Stack } from '@mantine/core'
-import axios from 'axios'
+import { useLogin } from '../hooks/useLogin'
 
-const LoginForm: React.FC = () => {
-  const theme = useMantineTheme()
-
+function LoginForm() {
+  const { mutate } = useLogin()
   const form = useForm<LoginPayload>({
-    mode: 'uncontrolled',
-    initialValues: {
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
       email: '',
       password: '',
     },
-
-    validate: zodResolver(loginSchema),
   })
 
-  const handleSubmit = async (values: LoginPayload) => {
-    try {
-      const response = await axios.post('/api/v1/auth/login', {
-        email: values.email,
-        password: values.password,
-      })
-
-      if (response.data.success) {
-        console.log(response.data)
-      }
-    } catch (error: any) {
-      console.log(error.message)
-    }
+  function onSubmit(values: LoginPayload) {
+    mutate(values)
   }
 
   return (
-    <Stack w="100%">
-      <form onSubmit={form.onSubmit(handleSubmit)}>
-        <TextInput
-          mt="sm"
-          label="Email"
-          placeholder="Email"
-          key={form.key('email')}
-          {...form.getInputProps('email')}
-        />
-        <TextInput
-          mt="sm"
-          label="Password"
-          placeholder="Password"
-          key={form.key('password')}
-          {...form.getInputProps('password')}
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input placeholder="email" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
 
-        <Button
-          w="40%"
-          color={theme.colors.customColor[8]}
-          type="submit"
-          mt="md"
-        >
-          Submit
-        </Button>
+        <FormField
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Password</FormLabel>
+              <FormControl>
+                <Input placeholder="password" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button type="submit">Submit</Button>
       </form>
-    </Stack>
+    </Form>
   )
 }
 

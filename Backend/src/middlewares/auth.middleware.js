@@ -26,7 +26,6 @@ export const authMiddleware = AsyncHandler(async (req, _, next) => {
 
     next();
   } catch (error) {
-    console.log(`Error in auth middlware: ${error.message}`);
     throw new ApiError(401, error?.message || "Invalid Access Token");
   }
 });
@@ -34,7 +33,6 @@ export const authMiddleware = AsyncHandler(async (req, _, next) => {
 export const authorizeRoles = (...roles) => {
   return (req, res, next) => {
     const user = req.user;
-    console.log("authorizeROle: ", user.role);
     if (!user || !roles.includes(user.role)) {
       throw new ApiError(
         403,

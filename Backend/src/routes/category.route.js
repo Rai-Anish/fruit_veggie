@@ -7,6 +7,7 @@ import {
   createCategory,
   deleteCategory,
   getAllCategories,
+  getAllParentCategories,
   getCategory,
   updateCategory,
 } from "../controllers/category.controller.js";
@@ -22,7 +23,7 @@ router.put("/:id", authMiddleware, authorizeRoles("admin"), updateCategory);
 router.delete("/:id", authMiddleware, authorizeRoles("admin"), deleteCategory);
 
 ////////////////////// PUBLIC ROUTE ///////////////////////////////////////////
-router.get("/", getAllCategories);
 router.get("/:id", getCategory);
+router.get("/", getAllCategories);
 
 export default router;

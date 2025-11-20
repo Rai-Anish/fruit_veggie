@@ -32,18 +32,20 @@ export const createCategory = AsyncHandler(async (req, res) => {
     suffix++;
   }
 
-  const category = new Category({
+  const categories = new Category({
     name: normalizedName,
     description: description || "",
     slug,
     parentCategory: parentCategory || null,
   });
 
-  await category.save();
+  await categories.save();
 
   res
     .status(200)
-    .json(new ApiResponse(200, "Category created successfully", { category }));
+    .json(
+      new ApiResponse(200, "Category created successfully", { categories })
+    );
 });
 
 export const updateCategory = AsyncHandler(async (req, res) => {
@@ -100,9 +102,11 @@ export const updateCategory = AsyncHandler(async (req, res) => {
 
   await category.save();
 
-  res
-    .status(200)
-    .json(new ApiResponse(200, "Category updated successfully", { category }));
+  res.status(200).json(
+    new ApiResponse(200, "Category updated successfully", {
+      categories: category,
+    })
+  );
 });
 
 export const deleteCategory = AsyncHandler(async (req, res) => {
@@ -134,13 +138,35 @@ export const getCategory = AsyncHandler(async (req, res) => {
 });
 
 export const getAllCategories = AsyncHandler(async (req, res) => {
-  const categories = await Category.find()
+  const { type } = req.query;
+
+  let filter = {};
+
+  if (type === "parent") {
+    filter.parentCategory = null;
+  } else if (type === "sub") {
+    filter.parentCategory = { $ne: null };
+  }
+
+  const categories = await Category.find(filter)
     .populate("parentCategory", "name slug")
     .sort({ createdAt: -1 });
 
+  res.status(200).json(
+    new ApiResponse(200, "Categories fetched successfully", {
+      categories,
+    })
+  );
+});
+
+export const getAllParentCategories = AsyncHandler(async (req, res) => {
+  const categories = await Category.find({ parentCategory: null });
+
+  if (!categories || categories.length <= 0) {
+    throw new ApiError(404, "No parent categories found");
+  }
+
   res
     .status(200)
-    .json(
-      new ApiResponse(200, "Categories fetched successfully", { categories })
-    );
+    .json(new ApiResponse(200, "Parent categories found", { categories }));
 });

@@ -45,8 +45,8 @@ export const signUp = AsyncHandler(async (req, res) => {
   });
 
   // send email verification code
-  const url = `${process.env.HOME_URL}/${urlToken}`;
-  const emailSend = sendVerificationEmail(email, fullName, url);
+  const url = `${process.env.HOME_URL}/verify-email?token=${urlToken}`;
+  sendVerificationEmail(email, fullName, url);
   // create temporary jtw token
   const signUpToken = jwt.sign(
     {
@@ -61,8 +61,8 @@ export const signUp = AsyncHandler(async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "Strict",
-      maxAge: 60 * 60 * 1000, // 1 hour in milliseconds
-    }) // 1 hour in milliseconds
+      maxAge: 24 * 60 * 60 * 1000, // 1 day in milliseconds
+    })
     .json(
       new ApiResponse(
         201,
@@ -73,7 +73,11 @@ export const signUp = AsyncHandler(async (req, res) => {
 });
 
 export const resendVerifyEmail = AsyncHandler(async (req, res) => {
-  const { email } = req.body;
+  const token = req.cookies?.signUpToken;
+
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+  const email = decoded.email;
 
   if (!email) {
     throw new ApiError(400, "Please enter your email");
@@ -101,7 +105,7 @@ export const resendVerifyEmail = AsyncHandler(async (req, res) => {
     { upsert: true, new: true } // creates if not exists
   );
 
-  const url = `${process.env.HOME_URL}/${urlToken}`;
+  const url = `${process.env.HOME_URL}/verify-email?token=${urlToken}`;
   await sendVerificationEmail(user.email, user.fullName, url);
 
   // Optionally refresh the signUpToken cookie if needed
@@ -111,11 +115,17 @@ export const resendVerifyEmail = AsyncHandler(async (req, res) => {
 
   res
     .status(200)
+    .clearCookie("signUpToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Strict",
+      maxAge: 24 * 60 * 60 * 1000, // 1 hour in milliseconds
+    })
     .cookie("signUpToken", signUpToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "Strict",
-      maxAge: 60 * 60 * 1000, // 1 hour in milliseconds
+      maxAge: 24 * 60 * 60 * 1000, // 1 hour in milliseconds
     })
     .json(new ApiResponse(200, "New verification email sent", { signUpToken }));
 });
@@ -182,7 +192,9 @@ export const verifyEmail = AsyncHandler(async (req, res) => {
 
   await OTP.findByIdAndDelete(urlTokenExist._id);
 
-  const user = await User.findById(userExist._id).select("_id");
+  const user = await User.findById(userExist._id).select(
+    "_id fullName role email lastLogin"
+  );
 
   const { refreshOption, accessOption } = refreshAndAccessCookieOption();
   res
@@ -191,14 +203,13 @@ export const verifyEmail = AsyncHandler(async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "Strict",
-      maxAge: 60 * 60 * 1000, // 1 hour in milliseconds
+      maxAge: 24 * 60 * 60 * 1000, // 1 hour in milliseconds
     })
     .cookie("refreshToken", refreshToken, refreshOption)
-    .cookie("accessToken", accessToken, accessOption)
+    // .cookie("accessToken", accessToken, accessOption)
     .json(
       new ApiResponse(200, "Account verified successfully", {
         user,
-        refreshToken,
         accessToken,
       })
     );
@@ -215,6 +226,10 @@ export const login = AsyncHandler(async (req, res) => {
 
   if (!userExist) {
     throw new ApiError(404, "User doesn't exist");
+  }
+
+  if (!userExist.isEmailVerified) {
+    throw new ApiError(401, "Please verify your email first");
   }
 
   const verifyPassword = await userExist.checkPassword(password);
@@ -240,7 +255,7 @@ export const login = AsyncHandler(async (req, res) => {
   res
     .status(200)
     .cookie("refreshToken", refreshToken, refreshOption)
-    .cookie("accessToken", accessToken, accessOption)
+    // .cookie("accessToken", accessToken, accessOption)
     .json(
       new ApiResponse(201, "Login successfully", {
         user,
@@ -260,59 +275,89 @@ export const logout = AsyncHandler(async (req, res) => {
   const { accessOption, refreshOption } = refreshAndAccessCookieOption();
   res
     .status(200)
-    .clearCookie("accessToken", accessOption)
+    // .clearCookie("accessToken", accessOption)
     .clearCookie("refreshToken", refreshOption)
     .json(new ApiResponse(200, "User logout successfully", {}));
 });
 
 export const getNewAccessToken = AsyncHandler(async (req, res) => {
-  // Get the refresh token from cookies or headers
   const token = req.cookies.refreshToken || req.body.refreshToken;
+  const { refreshOption } = refreshAndAccessCookieOption();
 
   if (!token) {
-    throw new ApiError(400, "Unauthorized access");
+    return res
+      .status(401)
+      .clearCookie("refreshToken", refreshOption)
+      .json(
+        new ApiResponse(
+          401,
+          "Unauthorized: No refresh token provided.",
+          null,
+          false
+        )
+      );
   }
 
-  // Verify the refresh token
   let decoded;
   try {
     decoded = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
-  } catch (error) {
-    throw new ApiError(401, "Invalid or expired refresh token");
+  } catch {
+    return res
+      .status(401)
+      .clearCookie("refreshToken", refreshOption)
+      .json(
+        new ApiResponse(
+          401,
+          "Invalid or expired refresh token. Please login again.",
+          null,
+          false
+        )
+      );
   }
 
-  // Find the user with the decoded ID
   const user = await User.findById(decoded.id);
 
   if (!user) {
-    throw new ApiError(404, "Invalid or expired refresh token");
+    return res
+      .status(404)
+      .clearCookie("refreshToken", refreshOption)
+      .json(
+        new ApiResponse(
+          404,
+          "Invalid user associated with refresh token. Please login again.",
+          null,
+          false
+        )
+      );
   }
-  console.log("Incoming refresh token:", token);
-  console.log("Database refresh token:", user.refreshToken);
-  console.log(`User: ${user}`);
+
   if (token !== user.refreshToken) {
-    throw new ApiError(401, "Refresh token is expired or used");
+    return res
+      .status(401)
+      .clearCookie("refreshToken", refreshOption)
+      .json(
+        new ApiResponse(
+          401,
+          "Session expired due to another login. Please login again.",
+          null,
+          false
+        )
+      );
   }
 
-  // Generate new access and refresh tokens
-  const { accessToken, refreshToken } = await genrateAccessAndRefreshToken(
-    user._id
-  );
+  const { accessToken, refreshToken: newRefreshToken } =
+    await genrateAccessAndRefreshToken(user._id);
 
-  // Set cookie options
-  const { refreshOption, accessOption } = refreshAndAccessCookieOption();
+  user.refreshToken = newRefreshToken;
+  await user.save({ validateBeforeSave: false });
 
-  // Send response with new tokens
   res
     .status(200)
-    .clearCookie("refreshToken", refreshOption)
-    .clearCookie("accessToken", accessOption)
-    .cookie("refreshToken", refreshToken, refreshOption)
-    .cookie("accessToken", accessToken, accessOption)
+    .cookie("refreshToken", newRefreshToken, refreshOption)
     .json(
       new ApiResponse(200, "Access token created successfully", {
-        refreshToken,
         accessToken,
+        refreshToken: newRefreshToken,
       })
     );
 });
