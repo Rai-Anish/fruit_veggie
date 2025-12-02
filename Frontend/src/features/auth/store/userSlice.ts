@@ -8,14 +8,13 @@ export interface UserInfo {
   lastLogin: string
 }
 
-const initialState: UserInfo | null = null
+type UserState = UserInfo | null
 
 const userSlice = createSlice({
   name: 'user',
-  initialState: initialState,
+  initialState: null as UserState,
   reducers: {
-    setUserInfo: (state, action: PayloadAction<UserInfo>): UserInfo =>
-      action.payload,
+    setUserInfo: (_, action: PayloadAction<UserInfo>) => action.payload,
     clearUserInfo: () => null,
   },
 })

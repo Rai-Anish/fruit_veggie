@@ -10,12 +10,11 @@ import {
 import { Button } from './ui/button'
 import { toast } from 'sonner'
 import type { UseMutateFunction } from '@tanstack/react-query'
-import { type ApiResponse } from '@/features/admin/hooks/useCategories'
 
 interface Props {
   open: boolean
   onClose: () => void
-  deleteFn: UseMutateFunction<ApiResponse<null>, Error, string, unknown>
+  deleteFn: UseMutateFunction<unknown, Error, string, unknown>
   id: string
   isDeleteing: boolean
 }
@@ -34,10 +33,7 @@ const DeleteCellModal = ({
         onClose()
       },
       onError: (error) => {
-        const errorMessage =
-          error.response?.data?.message ||
-          error.message ||
-          'Failed to delete category.'
+        const errorMessage = error.message || 'Failed to delete.'
         toast.error(errorMessage)
       },
     })

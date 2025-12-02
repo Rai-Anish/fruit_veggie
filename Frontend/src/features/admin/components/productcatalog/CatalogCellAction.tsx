@@ -14,7 +14,7 @@ import DeleteCellModal from '@/components/DeleteCellModal'
 import { useDeleteProductCatalog } from '../../hooks/useProductCatalog'
 
 interface Props {
-  category: ProductCatalogT
+  catalog: ProductCatalogT
 }
 
 const CatalogCellAction = ({ catalog }: Props) => {

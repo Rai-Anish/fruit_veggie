@@ -6,8 +6,8 @@ export const UploadedImageSchema = z.object({
 })
 
 export const discountSchema = z.object({
-  type: z.enum(['percentage', 'fixed']).optional(),
-  value: z.number().min(0).optional(),
+  type: z.enum(['percentage', 'fixed']),
+  value: z.number().min(0),
   validUntil: z.coerce.date().optional(),
 })
 
@@ -68,8 +68,8 @@ export const defaultValues: ProductFormValues = {
   costPrice: null,
   requestedOrganic: false,
   discount: {
-    type: '',
-    value: undefined,
+    type: 'percentage',
+    value: 0,
     validUntil: undefined,
   },
   category: '',

@@ -23,6 +23,10 @@ export const AuthAPI = {
     const response = await axiosClient.post('/api/v1/auth/signup', data)
     return response.data
   },
+  logout: async () => {
+    const response = await axiosClient.get('/api/v1/auth/logout')
+    return response.data
+  },
   resendVerificationEmail: async () => {
     const response = await axiosClient.post('/api/v1/auth/resend-verifyemail')
     return response.data

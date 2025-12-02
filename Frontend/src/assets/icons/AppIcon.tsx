@@ -1,7 +1,8 @@
 import { cn } from '@/lib/utils'
 import React from 'react'
+
 type Props = {
-  icon: React.ElementType
+  icon?: React.ElementType
   size?: number
   stroke?: number
   color?: string
@@ -11,9 +12,10 @@ type Props = {
 export const AppIcon = ({
   icon: Icon,
   size = 24,
-
   color = 'currentColor',
   className,
 }: Props) => {
+  if (!Icon) return null
+
   return <Icon size={size} className={cn(className)} color={color} />
 }

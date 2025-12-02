@@ -25,11 +25,10 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { useGetAllCategories } from '../../hooks/useCategories'
 
-import { TagsInput } from '@/components/tags' // Assuming this path is correct for your TagsInput component
+import { TagsInput } from '@/components/tags'
 import { useAddProductCatalog } from '../../hooks/useProductCatalog'
 
 const ProductCatalogFormSchema = z.object({
-  _id: z.string().optional(),
   name: z.string().min(1, 'Name is required.'),
   description: z.string().optional(),
   category: z.string().min(1, 'Category is required.'),
@@ -37,7 +36,7 @@ const ProductCatalogFormSchema = z.object({
     color: z
       .array(z.string().trim())
       .transform((val) => val.filter((s) => s !== '')),
-    productType: z
+    type: z
       .array(z.string().trim())
       .transform((val) => val.filter((s) => s !== '')),
     size: z
@@ -46,11 +45,11 @@ const ProductCatalogFormSchema = z.object({
   }),
 })
 
+type ProductCatalogFormValues = z.infer<typeof ProductCatalogFormSchema>
+
 const ProductCatalogForm = () => {
   const { data: categories, isFetching } = useGetAllCategories()
   const { mutate: addCatalog, isPending } = useAddProductCatalog()
-
-  type ProductCatalogFormValues = z.infer<typeof ProductCatalogFormSchema>
 
   const form = useForm<ProductCatalogFormValues>({
     resolver: zodResolver(ProductCatalogFormSchema),
@@ -60,7 +59,7 @@ const ProductCatalogForm = () => {
       category: '',
       attributes: {
         color: [],
-        productType: [],
+        type: [],
         size: [],
       },
     },
@@ -76,29 +75,14 @@ const ProductCatalogForm = () => {
 
   const validCategories = categories || []
 
-  const groupedCategories: Record<
-    string,
-    { label: string; subcategories: typeof validCategories }
-  > = {}
+  // Separate parent categories (no parentCategory) and subcategories
+  const parentCategories = validCategories.filter(
+    (cat) => !cat.parentCategory && cat._id
+  )
 
-  validCategories.forEach((category) => {
-    if (!category.parentCategory || !category.parentCategory._id) {
-      groupedCategories[category._id] = {
-        label: category.name,
-        subcategories: [],
-      }
-    }
-  })
-
-  validCategories.forEach((cat) => {
-    if (
-      cat.parentCategory &&
-      cat.parentCategory._id &&
-      groupedCategories[cat.parentCategory._id]
-    ) {
-      groupedCategories[cat.parentCategory._id].subcategories.push(cat)
-    }
-  })
+  const getSubcategories = (parentId: string) => {
+    return validCategories.filter((cat) => cat.parentCategory === parentId)
+  }
 
   return (
     <Form {...form}>
@@ -158,39 +142,35 @@ const ProductCatalogForm = () => {
                       Loading categories...
                     </SelectItem>
                   )}
-                  {!isFetching &&
-                    Object.keys(groupedCategories).length === 0 && (
-                      <SelectItem value="no-categories-placeholder" disabled>
-                        No categories found
-                      </SelectItem>
-                    )}
+                  {!isFetching && parentCategories.length === 0 && (
+                    <SelectItem value="no-categories-placeholder" disabled>
+                      No categories found
+                    </SelectItem>
+                  )}
 
                   {!isFetching &&
-                    Object.values(groupedCategories).map((group) =>
-                      group.subcategories.length > 0 ? (
-                        <SelectGroup key={group.label}>
-                          <SelectLabel>{group.label}</SelectLabel>
-                          {group.subcategories.map((sub) => (
-                            <SelectItem key={sub._id} value={sub._id || ''}>
-                              {sub.name}
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
-                      ) : (
-                        <SelectItem
-                          key={group.label}
-                          value={
-                            validCategories.find(
-                              (cat) =>
-                                cat.name === group.label &&
-                                (!cat.parentCategory || !cat.parentCategory._id)
-                            )?._id || ''
-                          }
-                        >
-                          {group.label}
+                    parentCategories.map((parent) => {
+                      const subcategories = getSubcategories(parent._id!)
+
+                      if (subcategories.length > 0) {
+                        return (
+                          <SelectGroup key={parent._id}>
+                            <SelectLabel>{parent.name}</SelectLabel>
+                            {subcategories.map((sub) => (
+                              <SelectItem key={sub._id} value={sub._id!}>
+                                {sub.name}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        )
+                      }
+
+                      return (
+                        <SelectItem key={parent._id} value={parent._id!}>
+                          {parent.name}
                         </SelectItem>
                       )
-                    )}
+                    })}
                 </SelectContent>
               </Select>
               <FormDescription>
@@ -221,7 +201,7 @@ const ProductCatalogForm = () => {
 
           <FormField
             control={form.control}
-            name="attributes.productType"
+            name="attributes.type"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Product Types</FormLabel>

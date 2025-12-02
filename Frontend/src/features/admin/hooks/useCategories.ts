@@ -46,8 +46,7 @@ export const useAddCategory = () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] })
     },
     onError: (error) => {
-      const errmsg =
-        error?.response?.data?.message || 'An unexpected error occurred.'
+      const errmsg = error?.message || 'An unexpected error occurred.'
       toast.error(errmsg)
     },
   })
@@ -62,7 +61,7 @@ export const useUpdateCategory = () => {
     { id: string; data: Partial<CategoryT> }
   >({
     mutationFn: ({ id, data }) => categoryService.updateCategory({ id, data }),
-    onSuccess: (response, variables) => {
+    onSuccess: (_response, variables) => {
       queryClient.invalidateQueries({ queryKey: ['categories'] })
       queryClient.invalidateQueries({ queryKey: ['category', variables.id] })
       queryClient.setQueryData(

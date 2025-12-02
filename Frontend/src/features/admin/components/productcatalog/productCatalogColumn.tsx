@@ -1,21 +1,6 @@
 import { type ColumnDef } from '@tanstack/react-table'
 import { type ProductCatalogT } from '../../services/productCatalogApi'
-import { Button } from '@/components/ui/button'
-import { MoreHorizontal } from 'lucide-react'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import CatalogCellAction from './CatalogCellAction'
-
-interface ProductCatalogTableMeta {
-  onEdit: (id: string) => void
-  onDelete: (id: string) => void
-}
 
 export const ProductCatalogColumn: ColumnDef<ProductCatalogT>[] = [
   { accessorKey: 'name', header: 'Name' },
